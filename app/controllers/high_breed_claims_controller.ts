@@ -156,7 +156,6 @@ export default class HighBreedClaimsController {
       products: salesLines.productList,
     }
 
-    return claimData
     const body = new CimasProcessor().Claim(claimData)
     //return body
     const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)
