@@ -37,8 +37,8 @@ export default class HighBreedClaimsController {
         Description: x.Description,
         EpisodeID: x.Episode_ID,
         Type: x.Type,
-        Quantity: x.Quantity * 100,
-        Amount: Math.round(x.Amount * 100),
+        Quantity: (x.Quantity - x.Credited_Qty_FF) * 100,
+        Amount: Math.round((x.Amount - x.Credited_Amount_FF) * 100),
         UnitPrice: x.Unit_Price,
         PostingDate: x.Posting_Date,
         DischargeDate: header.DischargeDate,
@@ -156,6 +156,7 @@ export default class HighBreedClaimsController {
       products: salesLines.productList,
     }
 
+    return claimData
     const body = new CimasProcessor().Claim(claimData)
     //return body
     const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)

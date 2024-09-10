@@ -221,7 +221,7 @@ export default class ClaimProcessor {
   Header(header: IHeader) {
     return `
     <zmf:ClaimHeader>
-        <zmf:ClaimNumber>${header.No}X4</zmf:ClaimNumber>
+        <zmf:ClaimNumber>${header.No}</zmf:ClaimNumber>
         <zmf:ClaimDateTime>${header.ClaimDate}</zmf:ClaimDateTime>
         <zmf:TotalServices>${header.TotalServices}</zmf:TotalServices>
         <zmf:TotalConsumables>${header.TotalConsumables}</zmf:TotalConsumables>
