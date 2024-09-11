@@ -79,11 +79,11 @@ export default class ClaimProcessor {
               <zmf:SectionType>F</zmf:SectionType>
               <zmf:ServiceStartDateTime>${product.AdmissionDate}</zmf:ServiceStartDateTime>
               <zmf:ServiceEndDateTime>${product.DischargeDate}</zmf:ServiceEndDateTime>
-              <zmf:ExternalReferenceNumber>A1223422</zmf:ExternalReferenceNumber>
+              <zmf:ExternalReferenceNumber>0</zmf:ExternalReferenceNumber>
               <zmf:BenefitCode>A223</zmf:BenefitCode>
-              <zmf:BenefitDescription>Descr</zmf:BenefitDescription>
+              <zmf:BenefitDescription>${product.TariffCode}</zmf:BenefitDescription>
               <zmf:NumberOfConsumables>0</zmf:NumberOfConsumables>
-              <zmf:Identifier>0</zmf:Identifier>
+              <zmf:Identifier>${product.TariffCode}</zmf:Identifier>
               <zmf:NumberOfLaboratoryRecords>0</zmf:NumberOfLaboratoryRecords>
               <zmf:NumberOfToothRecords>0</zmf:NumberOfToothRecords>
               <zmf:NumberOfDentalLaboratoryRecords>0</zmf:NumberOfDentalLaboratoryRecords>
@@ -141,7 +141,7 @@ export default class ClaimProcessor {
         <zmf:SectionType>R</zmf:SectionType>
         <zmf:DispensedDate>${product.AdmissionDate}</zmf:DispensedDate>
         <zmf:WhomToPay>P</zmf:WhomToPay>
-        <zmf:Identifier>793452</zmf:Identifier>
+        <zmf:Identifier>${product.TariffCode}</zmf:Identifier>
         <zmf:TotalValues>
           <zmf:GrossAmount>${product.Price}</zmf:GrossAmount>
           <zmf:NettAmount>0</zmf:NettAmount>
@@ -221,7 +221,7 @@ export default class ClaimProcessor {
   Header(header: IHeader) {
     return `
     <zmf:ClaimHeader>
-        <zmf:ClaimNumber>${header.No}</zmf:ClaimNumber>
+        <zmf:ClaimNumber>${header.No}1</zmf:ClaimNumber>
         <zmf:ClaimDateTime>${header.ClaimDate}</zmf:ClaimDateTime>
         <zmf:TotalServices>${header.TotalServices}</zmf:TotalServices>
         <zmf:TotalConsumables>${header.TotalConsumables}</zmf:TotalConsumables>

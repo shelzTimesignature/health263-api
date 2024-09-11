@@ -21,9 +21,8 @@ export default class JSONProcessor {
   async ClaimProcessor(xml: any) {
     const result: any = await this.Processor(xml)
 
-    const x = result['soap:Envelope']['soap:Body']['ns2:processZMFResponse']['ns2:ZMF2_1Response']
-
-    const transaction = this.RemoveCharFromKeys(x, 'ns3:')
+    const w = result['soap:Envelope']['soap:Body']['ns2:processZMFResponse']['ns2:ZMF2_1Response']
+    const transaction = this.RemoveCharFromKeys(w, 'ns3:')
     return transaction
   }
 
@@ -63,7 +62,7 @@ export default class JSONProcessor {
 
 
   MsgFormater(arr: any){
-    let msg= ''
+    let msg = ''
     if (arr === undefined || arr === null) {
       msg = 'Transaction Failed'
     }

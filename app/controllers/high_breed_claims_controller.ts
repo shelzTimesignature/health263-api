@@ -47,7 +47,7 @@ export default class HighBreedClaimsController {
       }
     })
 
-    return this.getUnitProducts(Sales)
+    return this.getUnitProducts(Sales.filter((x) => x.Quantity > 0))
   }
 
   getTotalServicesAndConsumables(products: ISalesLine[]) {
@@ -132,36 +132,41 @@ export default class HighBreedClaimsController {
   }
 
   async post({ request, response }: HttpContext) {
-    const bodyX = request.all()
-    const { ClaimNo, Type } = await postHighBreedClaimValidator.validate(bodyX)
-    const header = await this.claim.getClaim(ClaimNo, Type)
-    const checkedHeader = this.claimChecker.checkHeader(header, response)
+    try {
+      const bodyX = request.all()
+      const { ClaimNo, Type } = await postHighBreedClaimValidator.validate(bodyX)
+      const header = await this.claim.getClaim(ClaimNo, Type)
+      const checkedHeader = this.claimChecker.checkHeader(header, response)
 
-    const salesLines = await this.getSalesLines(checkedHeader)
-    const patient = await this.claim.getPatient(checkedHeader.PatientNo, checkedHeader.FunderCode)
-    const checkedPatient = this.claim.claimChecker.checkPatient(patient, response)
+      const salesLines = await this.getSalesLines(checkedHeader)
+      const patient = await this.claim.getPatient(checkedHeader.PatientNo, checkedHeader.FunderCode)
+      const checkedPatient = this.claim.claimChecker.checkPatient(patient, response)
 
-    const member: IMember = {
-      MedicalSchemeNumber: checkedPatient.MedicalAidNo,
-      MedicalSchemeName: checkedPatient.Funder,
+      const member: IMember = {
+        MedicalSchemeNumber: checkedPatient.MedicalAidNo,
+        MedicalSchemeName: checkedPatient.Funder,
+      }
+
+      checkedHeader.TotalServices = salesLines.productList.length ?? 0
+      checkedHeader.TotalConsumables = salesLines.totalConsumables ?? 0
+
+      const claimData: ICimasClaim = {
+        header: checkedHeader,
+        member: member,
+        patient: checkedPatient,
+        products: salesLines.productList,
+      }
+      const body = new CimasProcessor().Claim(claimData)
+      const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)
+
+      const x = new JSONProcessor()
+
+      const z = await x.ClaimProcessor(data)
+      return this.claim.GetClaimResponse(z)
+    } catch (e) {
+      response.abort({
+        msg: 'Server Error, Ask your system admin to check the logs. or contact health263',
+      })
     }
-
-    checkedHeader.TotalServices = salesLines.productList.length ?? 0
-    checkedHeader.TotalConsumables = salesLines.totalConsumables ?? 0
-
-    const claimData: ICimasClaim = {
-      header: checkedHeader,
-      member: member,
-      patient: checkedPatient,
-      products: salesLines.productList,
-    }
-
-    const body = new CimasProcessor().Claim(claimData)
-    //return body
-    const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)
-    //return data
-    const x = new JSONProcessor()
-    const z = await x.ClaimProcessor(data)
-    return this.claim.GetClaimResponse(z)
   }
 }

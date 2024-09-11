@@ -112,38 +112,46 @@ export default class ClaimsController {
   }
 
   async post({ request, response }: HttpContext) {
-    const dataX = request.all()
+    try {
+      const dataX = request.all()
 
-    const { No, Type } = await postClaimValidator.validate(dataX)
-    const header = await this.getClaim(No, Type)
+      const { No, Type } = await postClaimValidator.validate(dataX)
+      const header = await this.getClaim(No, Type)
 
-    const checkedHeader = this.claimChecker.checkHeader(header, response)
+      const checkedHeader = this.claimChecker.checkHeader(header, response)
 
-    const patient = await this.getPatient(checkedHeader.PatientNo, checkedHeader.FunderCode)
-    const checkedPatient = this.claimChecker.checkPatient(patient, response)
+      const patient = await this.getPatient(checkedHeader.PatientNo, checkedHeader.FunderCode)
+      const checkedPatient = this.claimChecker.checkPatient(patient, response)
 
-    const lines = await this.getClaimLines(checkedHeader)
+      const lines = await this.getClaimLines(checkedHeader)
 
-    const member: IMember = {
-      MedicalSchemeNumber: checkedPatient.MedicalAidNo,
-      MedicalSchemeName: checkedPatient.Funder,
+      const member: IMember = {
+        MedicalSchemeNumber: checkedPatient.MedicalAidNo,
+        MedicalSchemeName: checkedPatient.Funder,
+      }
+
+      checkedHeader.TotalServices = lines.length
+
+      const claimData: IClaim = {
+        header: checkedHeader,
+        member: member,
+        patient: checkedPatient,
+        products: lines,
+      }
+
+      const body = new ClaimProcessor().Claim(claimData)
+      const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)
+      // return data
+      const x = new JSONProcessor()
+
+      const z = await x.ClaimProcessor(data)
+
+      return this.GetClaimResponse(z)
+    } catch (e) {
+      response.abort({
+        msg: e?.body?.msg ?? 'Server Error',
+      })
     }
-
-    checkedHeader.TotalServices = lines.length
-
-    const claimData: IClaim = {
-      header: checkedHeader,
-      member: member,
-      patient: checkedPatient,
-      products: lines,
-    }
-
-    const body = new ClaimProcessor().Claim(claimData)
-    const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)
-    const x = new JSONProcessor()
-    const z = await x.ClaimProcessor(data)
-
-    return this.GetClaimResponse(z)
   }
 
   GetClaimResponse(res: any) {
@@ -188,6 +196,7 @@ export default class ClaimsController {
     if (!Array.isArray(payload)) {
       Service.push({
         Number: payload?.Number,
+        TariffCode: payload?.Identifier ?? '',
         GrossAmount: payload?.SubTotalValues?.GrossAmount ?? 0,
         NettAmount: payload?.SubTotalValues?.NettAmount ?? 0,
         PatientPayAmount: payload?.SubTotalValues?.PatientPayAmount ?? 0,
@@ -201,6 +210,7 @@ export default class ClaimsController {
       for (const element of payload) {
         x.push({
           Number: element?.Number,
+          TariffCode: this.lengthManipulator(element?.Identifier ?? ''),
           GrossAmount: element?.SubTotalValues?.GrossAmount ?? 0,
           NettAmount: element?.SubTotalValues?.NettAmount ?? 0,
           PatientPayAmount: element?.SubTotalValues?.PatientPayAmount ?? 0,
@@ -232,5 +242,9 @@ export default class ClaimsController {
     }
 
     return msg
+  }
+
+  lengthManipulator(x: string) {
+    return x.length === 4 ? `0${x}` : x
   }
 }
