@@ -18,4 +18,5 @@ export interface IHeader{
   FunderCode: string
   AuthorisationNumber: string
   PreAuthorisationNumber: string
+  AfozNo: string
 }

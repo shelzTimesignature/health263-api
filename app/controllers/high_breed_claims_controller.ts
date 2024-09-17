@@ -158,6 +158,7 @@ export default class HighBreedClaimsController {
       }
       const body = new CimasProcessor().Claim(claimData)
       const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)
+      console.log(data)
 
       const x = new JSONProcessor()
 
@@ -165,7 +166,7 @@ export default class HighBreedClaimsController {
       return this.claim.GetClaimResponse(z)
     } catch (e) {
       response.abort({
-        msg: 'Server Error, Ask your system admin to check the logs. or contact health263',
+        msg: e?.body?.msg ?? 'Server Error',
       })
     }
   }

@@ -40,11 +40,11 @@ export default class ClaimsController {
         ICD10: data.ICD10_Code,
         AuthorisationNumber: data.Auth_Value,
         FunderCode: data.Funder_Code,
+        AfozNo: data.Afoz_No,
         PreAuthorisationNumber: data.Pre_Authorisation_No.trim(),
       }
       return header
     } catch (e) {
-      console.log(e)
       return null
     }
   }
@@ -201,6 +201,7 @@ export default class ClaimsController {
         NettAmount: payload?.SubTotalValues?.NettAmount ?? 0,
         PatientPayAmount: payload?.SubTotalValues?.PatientPayAmount ?? 0,
         Message: this.setServiceMessage(payload?.Message) ?? '',
+        Consumable: this.GetConsumables(payload!.ConsumableResponse) ?? [],
       })
     }
 
@@ -215,6 +216,7 @@ export default class ClaimsController {
           NettAmount: element?.SubTotalValues?.NettAmount ?? 0,
           PatientPayAmount: element?.SubTotalValues?.PatientPayAmount ?? 0,
           Message: this.setServiceMessage(element.Message) ?? '',
+          Consumable: this.GetConsumables(element!.ConsumableResponse) ?? [],
         })
       }
 
@@ -226,6 +228,57 @@ export default class ClaimsController {
 
   setServiceMessage(res: any) {
     let msg = ''
+    console.log(res)
+
+    if (!Array.isArray(res)) {
+      msg = res?.Description ?? ''
+    }
+
+    if (Array.isArray(res)) {
+      let x = []
+
+      for (const element of res) {
+        x.push(element?.Description ?? '')
+      }
+
+      msg = x.toString()
+    }
+
+    return msg
+  }
+
+  GetConsumables(payload: any) {
+    let Consumable = []
+    if (payload === undefined || payload === null) {
+      Consumable = []
+    }
+
+    if (!Array.isArray(payload)) {
+      Consumable.push({
+        Code: payload?.Code ?? '',
+        Message: this.setConsumableMessage(payload?.Message),
+      })
+    }
+
+    if (Array.isArray(payload)) {
+      let x = []
+
+      for (const element of payload) {
+        x.push({
+          Code: element?.Code ?? '',
+          Message: this.setConsumableMessage(element?.Message),
+        })
+      }
+
+      Consumable = x
+    }
+
+    return Consumable
+  }
+
+  setConsumableMessage(res: any) {
+    let msg = ''
+    console.log(res)
 
     if (!Array.isArray(res)) {
       msg = res?.Description ?? ''

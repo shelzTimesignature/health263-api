@@ -23,7 +23,7 @@ export default class ClaimProcessor {
           <zmf:Claim>
             <zmf:Request>
               ${this.Transaction(claim)}
-              ${this.Provider()}
+              ${this.Provider(claim.header)}
               ${this.Member(claim.member)}
               ${this.Patient(claim.patient)}
               ${this.Header(claim.header)}
@@ -175,11 +175,11 @@ export default class ClaimProcessor {
     `
   }
 
-  Provider() {
+  Provider(header: IHeader) {
     return `
         <zmf:Provider>
           <zmf:Role>${process.env.Role}</zmf:Role>
-          <zmf:PracticeNumber>${process.env.PracticeNumber}</zmf:PracticeNumber>
+          <zmf:PracticeNumber>${header.AfozNo}</zmf:PracticeNumber>
           <zmf:PracticeName>${process.env.PracticeName}</zmf:PracticeName>
         </zmf:Provider>
     `
