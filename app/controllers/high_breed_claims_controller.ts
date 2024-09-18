@@ -23,10 +23,10 @@ export default class HighBreedClaimsController {
       header.ICD10.length === 0
         ? []
         : [
-            {
-              Code: header.ICD10,
-            },
-          ]
+          {
+            Code: header.ICD10,
+          },
+        ]
 
     const Sales: ISalesLine[] = data.value.map((x: any) => {
       return <ISalesLine>{
@@ -47,33 +47,27 @@ export default class HighBreedClaimsController {
       }
     })
 
-    return this.getUnitProducts(Sales.filter((x) => x.Quantity > 0))
+    const AvailableSales = Sales.filter((x) => x.Quantity > 0)
+
+    return this.getUnitProducts(AvailableSales)
   }
 
-  getTotalServicesAndConsumables(products: ISalesLine[]) {
-    let consumables: any[] = []
-    let services: any[] = []
+  getTotalItem(productList: any) {
+    let totalConsumables = 0
+    let totalServices = productList.length
 
-    for (let p of products.filter((x) => x.NappiCode.length > 0)) {
-      if (!consumables.includes(p.No)) {
-        consumables.push(p.No)
-      }
-    }
-
-    for (let q of products.filter((y) => y.NappiCode.length === 0)) {
-      if (!services.includes(q.No)) {
-        services.push(q.No)
-      }
+    for (let s of productList) {
+      totalConsumables += s.SalesLine.length
     }
 
     return {
-      totalServices: services.length,
-      totalConsumables: consumables.length,
+      totalServices,
+      totalConsumables,
+      productList,
     }
   }
 
   getUnitProducts(products: ISalesLine[]) {
-    const { totalServices, totalConsumables } = this.getTotalServicesAndConsumables(products)
     const tempProducts: ISalesHeader[] = []
     const productIDs: string[] = []
     let z = 1
@@ -112,11 +106,8 @@ export default class HighBreedClaimsController {
       x.NoOfConsumables = x.SalesLine.length
       return x
     })
-    return {
-      productList,
-      totalServices,
-      totalConsumables,
-    }
+
+    return this.getTotalItem(productList)
   }
 
   updateProductList(products: ISalesLine[], product: ISalesLine) {
@@ -156,6 +147,7 @@ export default class HighBreedClaimsController {
         patient: checkedPatient,
         products: salesLines.productList,
       }
+
       const body = new CimasProcessor().Claim(claimData)
       const { data } = await http.post(`/apacewebservices/ZMF?wsdl`, body)
       console.log(data)
